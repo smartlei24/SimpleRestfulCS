@@ -20,7 +20,6 @@ namespace ASimpleHttpServer
             {
                 Console.WriteLine("Initializtion failed,Please Restart!");
             }
-            
             Console.ReadKey();
         }
     }

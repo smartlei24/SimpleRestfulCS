@@ -51,10 +51,6 @@ namespace ASimpleHttpServer
         {
             //处理Request
             DealRequest request = new DealRequest(client);
-            if (request.SendResponse())
-            {
-                client.Close();
-            }
         }
     }
 }
