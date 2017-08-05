@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -24,15 +25,21 @@ namespace WindowsFormsApp1
                 return;
             }
 
-            HttpCollector requestSocket = new HttpCollector();
-            requestSocket.SendRequest(textBox2+"&"+textBox3.Text);
+            HttpCollector requestSocket = new HttpCollector("POST","/login/");
+            requestSocket.SendRequest(textBox2.Text+"&"+textBox3.Text);
             string message = requestSocket.ResponseMessage;
 
-            string contentText = message.Split(new [] {"\r\n\r\n"}
-            , StringSplitOptions.RemoveEmptyEntries)[1];
+            string contentText = requestSocket.Content;
             //在状态栏显示Response中Content，并将整个报文打印在Textbox1中
             statusText.Text = contentText;
             textBox1.Text += message;
+
+            if (contentText.Contains("登陆成功"))
+            {
+                this.Hide();
+                OpearatingEmployees employees = new OpearatingEmployees();
+                employees.Show();
+            }
         }
     }
 }

@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
-using ASimpleHttPServer;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework.Internal;
 
 namespace ASimpleHttpServer
 {
@@ -18,35 +22,50 @@ namespace ASimpleHttpServer
             AllWrong = 810
         }
 
-        private Dictionary<string, string> headerDirectory;
+        private Dictionary<string, string> headerDirectory = new Dictionary<string, string>();
 
         //构造函数
         public DealRequest(Socket client)
         {
             Handler = client;
-            int receiveNum = 1;
+            int receiveCount = 0;
             byte[] bytes = new byte[1024];
+            int receiveNum = 0;
             string message = "";
-            while (receiveNum != 0)
-            {
-                receiveNum = client.Receive(bytes);
-                message += Encoding.UTF8.GetString(bytes, 0, bytes.Length);
-                Console.WriteLine("Recive a Http request.");
-            }
-            //将Request根据header和Content分割
-            string httpHeader = message.Split(new[] {"\r\n\r\n"}, StringSplitOptions.RemoveEmptyEntries)[0];
-            string httpContent = message.Split(new[] {"\r\n\r\n"}, StringSplitOptions.RemoveEmptyEntries)[1];
+            string httpContent = "";
+            string httpHeader;
 
-            AddMessageToHeaderDirctory(httpHeader);
+            while (true)
+            {
+                receiveNum = client.Receive(bytes, bytes.Length, 0);
+                message = Encoding.UTF8.GetString(bytes, 0, receiveNum);
+                string[] httpSplit = message.Split(new[] { "\r\n\r\n", "\0" }, StringSplitOptions.RemoveEmptyEntries);
+                httpHeader = httpSplit[0];
+                string body = httpSplit.Length == 1 ? "" : httpSplit[1];
+
+                if (receiveCount == 0)
+                {
+                    AddMessageToHeaderDirctory(httpHeader);
+                }
+                httpContent += body;
+                if (Convert.ToInt16( headerDirectory["Content-Length"]) == body.Length )
+                {
+                    break;
+                }
+                receiveCount++;
+            }
+            Console.WriteLine("Recive a Http request.");
 
             if (HeaderIsCorrect(httpContent))
             {
                 string resouceUrl = GetHeadValueFormDirctory("requestUrl").Split(
                     new[] {'\\', '/'}, StringSplitOptions.RemoveEmptyEntries)[0];
+
                 string resouceName = ResouceRoute.ResouceDictionary[resouceUrl];
 
-                IResouce dealResouce = Activator.CreateInstance("ASimpleHttpServer", resouceName) as IResouce;
+                Type resouceType = Type.GetType("ASimpleHttpServer." + resouceName);
 
+                IResouce dealResouce = Activator.CreateInstance(resouceType) as IResouce;
                 if (dealResouce == null)
                 {
                     Console.WriteLine("Have a Resouce is Null reference");
@@ -62,25 +81,25 @@ namespace ASimpleHttpServer
                         responContent = dealResouce.DealGet(
                             httpContent,
                             GetHeadValueFormDirctory("Token"),
-                            GetHeadValueFormDirctory("url"));
+                            GetHeadValueFormDirctory("requestUrl"));
                         break;
                     case "POST":
                         responContent = dealResouce.DealPost(
                             httpContent,
                             GetHeadValueFormDirctory("Token"),
-                            GetHeadValueFormDirctory("url"));
+                            GetHeadValueFormDirctory("requestUrl"));
                         break;
                     case "PUT":
                         responContent = dealResouce.DealPut(
                             httpContent,
                             GetHeadValueFormDirctory("Token"),
-                            GetHeadValueFormDirctory("url"));
+                            GetHeadValueFormDirctory("requestUrl"));
                         break;
-                    case "DELECT":
-                        responContent = dealResouce.DealDelect(
+                    case "DELETE":
+                        responContent = dealResouce.DealDelete(
                             httpContent,
                             GetHeadValueFormDirctory("Token"),
-                            GetHeadValueFormDirctory("url"));
+                            GetHeadValueFormDirctory("requestUrl"));
                         break;
                 }
                 SendResponse(responContent);
@@ -99,7 +118,7 @@ namespace ASimpleHttpServer
         //判断头部是否争取 并设置返回的状态码
         private bool HeaderIsCorrect(string httpContent)
         {
-            if (new[] {"GET", "POST", "PUT", "DELETE"}.Contains(GetHeadValueFormDirctory("method")))
+            if (!new[] {"GET", "POST", "PUT", "DELETE"}.Contains(GetHeadValueFormDirctory("method")))
             {
                 StatusCode = 400;
                 return false;
@@ -109,9 +128,7 @@ namespace ASimpleHttpServer
                 StatusCode = 400;
                 return false;
             }
-            if (GetHeadValueFormDirctory("Accect").Equals("text/html,application/xhtml+xml,application/xml;"))
-                StatusCode = 711;
-            else if (string.IsNullOrWhiteSpace(GetHeadValueFormDirctory("requestUrl")))
+            if (string.IsNullOrWhiteSpace(GetHeadValueFormDirctory("requestUrl")))
                 StatusCode = 400;
             StatusCode = 200;
             return true;
@@ -119,7 +136,7 @@ namespace ASimpleHttpServer
 
 
         //构造消息头
-        private string BuildHeader()
+        private StringBuilder BuildHeader()
         {
             StringBuilder header = new StringBuilder("HTTP/1.1");
             header.Append(" " + StatusCode + " " + (StautucodeString) StatusCode + "\r\n");
@@ -127,14 +144,15 @@ namespace ASimpleHttpServer
             header.Append("Connection: keep-alive\r\n");
             header.Append("Server:Lave_Sever\r\n");
             header.Append("Date:" + DateTime.Now.GetDateTimeFormats('r')[0] + "\r\n");
-            header.Append("\r\n");
-            return header.ToString();
+            return header;
         }
 
         //返回Response
         private void SendResponse(string Content = "")
         {
-            string buffString = BuildHeader() + Content;
+            StringBuilder header = BuildHeader();
+            header.Append("Content-Length :" + Content.Length+"\r\n\r\n");
+            string buffString = header.Append(Content).ToString();
             Console.WriteLine("Send A Response.");
             byte[] bufferBytes = Encoding.UTF8.GetBytes(buffString);
             Handler.Send(bufferBytes);
@@ -157,7 +175,7 @@ namespace ASimpleHttpServer
             for (int i = 1; i < splitHeader.Length; i++)
             {
                 string key = splitHeader[i].Split(new[] {':', ' '}, StringSplitOptions.RemoveEmptyEntries)[0];
-                string keyValue = splitHeader[i].Split(new[] {':', ' '}, StringSplitOptions.RemoveEmptyEntries)[1];
+                string keyValue = splitHeader[i].Split(new[] {':', ' '}, StringSplitOptions.RemoveEmptyEntries)[1].ToString();
                 headerDirectory.Add(key, keyValue);
             }
         }
@@ -166,7 +184,7 @@ namespace ASimpleHttpServer
         {
             if (headerDirectory.ContainsKey(key))
                 return headerDirectory[key];
-            return null;
+            return "";
         }
     }
 }

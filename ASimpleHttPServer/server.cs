@@ -1,10 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework.Internal;
 
 namespace ASimpleHttpServer
 {
+
     internal class Server
     {
         private bool active;
@@ -22,6 +27,8 @@ namespace ASimpleHttpServer
         //初始化
         public int Initialze()
         {
+            ResouceRoute.InitializeResouceRoute();
+            EmployeeRoute.LoadJsonFromFile();
             if (active)
                 return 0;
             server = new Socket(SocketType.Stream, ProtocolType.Tcp);
@@ -51,6 +58,19 @@ namespace ASimpleHttpServer
         {
             //处理Request
             DealRequest request = new DealRequest(client);
+        }
+
+        ~Server()
+        {
+            if (EmployeeRoute.Sync())
+            {
+                Console.WriteLine("Successfully Sync");
+            }
+            else
+            {
+                Console.WriteLine("Faild Sync");
+                Console.ReadKey();
+            }
         }
     }
 }

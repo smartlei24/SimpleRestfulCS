@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ASimpleHttPServer
+namespace ASimpleHttpServer
 {
-    class LoginResouce:IResouce
+    public class LoginResouce:IResouce
     {
+
         public string DealGet(string content, string token, string url)
         {
             return "Nothing to Get";
@@ -17,7 +18,7 @@ namespace ASimpleHttPServer
         {
             string user = content.Split(new[] {'&'}, StringSplitOptions.RemoveEmptyEntries)[0];
             string passwd = content.Split(new[] {'&'}, StringSplitOptions.RemoveEmptyEntries)[1];
-            if (user == "Lave_Lei" && passwd == "123456")
+            if (user == "Lave_lei" && passwd == "123456")
             {
                 return "登陆成功\r\nToken:20170804";
             }
@@ -37,7 +38,7 @@ namespace ASimpleHttPServer
             return "Can't to Update anything";
         }
 
-        public string DealDelect(string content, string token, string url)
+        public string DealDelete(string content, string token, string url)
         {
             return "Can't to Delect anything";
         }

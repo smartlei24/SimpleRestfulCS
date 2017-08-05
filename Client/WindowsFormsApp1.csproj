@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\..\l\CSharp_Exercise\src\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -45,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Employee.cs" />
     <Compile Include="LoginWindows.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -52,10 +57,19 @@
       <DependentUpon>LoginWindows.cs</DependentUpon>
     </Compile>
     <Compile Include="HttpCollector.cs" />
+    <Compile Include="OpearatingEmployees.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="OpearatingEmployees.Designer.cs">
+      <DependentUpon>OpearatingEmployees.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="LoginWindows.resx">
       <DependentUpon>LoginWindows.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="OpearatingEmployees.resx">
+      <DependentUpon>OpearatingEmployees.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

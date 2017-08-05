@@ -9,54 +9,85 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
-namespace ASimpleHttPServer
+namespace ASimpleHttpServer
 {
-    internal class EmployeesResouce :IResouce
+    public class EmployeesResouce :IResouce
     {
-        private static JArray employeesArray;
-
-        public EmployeesResouce()
-        {
-            var jsonFileContent = "";
-            using (var reader =
-                new StreamReader(
-                    @"C:\Users\ll7i\Documents\GitHub\restfulCS\SimpleRestfulCS\ASimpleHttPServer\bin\Debug\employees.json")
-            )
-            {
-                string line;
-                while ((line = reader.ReadLine())!=null)
-                    jsonFileContent += line;
-            }
-            employeesArray = JArray.Parse(jsonFileContent);
-        }
+        
 
         public string DealGet(string content, string token, string url)
         {
             var response = "";
-            if (url.Split(new []{'/','\\'},StringSplitOptions.RemoveEmptyEntries).Length==1)
+            if (url.Split(new[] {'/', '\\'}, StringSplitOptions.RemoveEmptyEntries).Length == 1)
+            {
+                response = EmployeeRoute.employeesArray.ToString();
                 return response;
-            //列出单个员工的信息
+            }
+
+            string id = url.Split(new[] {'/', '\\'}, StringSplitOptions.RemoveEmptyEntries)[1];
+            foreach (var employee in EmployeeRoute.employeesArray)
+            {
+                if (employee["Id"].ToString() == id)
+                {
+                    response = string.Join("", 
+                        employee.ToString().Split(new []{"\r\n"},StringSplitOptions.RemoveEmptyEntries));
+                }
+                if (string.IsNullOrWhiteSpace(response))
+                {
+                    response = "Bad Query";
+                }
+            }
             return response;
         }
 
         public string DealPost(string content, string token, string url)
         {
             var response = "";
-            
-            var newEmployee = JsonConvert.DeserializeObject(content) as Employee;
+            Employee emp = JsonConvert.DeserializeObject<Employee>(content);
+            foreach (var employee in EmployeeRoute.employeesArray)
+            {
+                if (Convert.ToInt32(employee["Id"]) == emp.Id)
+                {
+                    response = "This is a same Id";
+                    return response;
+                }
+            }
+            response = "Seccessfully Create";
+            EmployeeRoute.employeesArray.Add(
+                JObject.Parse(content));
             return response;
         }
 
         public string DealPut(string content, string token, string url)
         {
-            var response = "";
+            var response = "Falid Modified";
+            Employee emp = JsonConvert.DeserializeObject<Employee>(content);
+            foreach (var employee in EmployeeRoute.employeesArray)
+            {
+                if (Convert.ToInt32(employee["Id"]) == emp.Id)
+                {
+                    EmployeeRoute.employeesArray.Remove(employee);
+                    EmployeeRoute.employeesArray.Add(JObject.FromObject(emp));
+                    response = "Successfully Modified";
+                    break;
+                }
+            }
             return response;
-
         }
 
-        public string DealDelect(string content, string token, string url)
+        public string DealDelete(string content, string token, string url)
         {
-            var response = "";
+            var response = "Falid Deleted";
+            Employee emp = JsonConvert.DeserializeObject<Employee>(content);
+            foreach (var employee in EmployeeRoute.employeesArray)
+            {
+                if (Convert.ToInt32(employee["Id"]) == emp.Id)
+                {
+                    EmployeeRoute.employeesArray.Remove(employee);
+                    response = "Successfully Deleted";
+                    break;
+                }
+            }
             return response;
         }
     }

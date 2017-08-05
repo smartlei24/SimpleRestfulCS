@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using NUnit.Framework.Internal;
 
-namespace ASimpleHttPServer
+namespace ASimpleHttpServer
 {
     public class ResouceRoute
     {
-        public static Dictionary<string,string> ResouceDictionary { get; }
+        public static Dictionary<string,string> ResouceDictionary { get; } = new Dictionary<string, string>();
 
-        public bool InitializeResouceRoute()
+        static public bool InitializeResouceRoute()
         {
             ResouceDictionary.Clear();
             foreach (var resouce in ConfigurationManager.AppSettings.AllKeys)
             {
-                ResouceDictionary.Add(resouce, ConfigurationManager.AppSettings[resouce]);
+                ResouceDictionary.Add(resouce, ConfigurationManager.AppSettings[resouce].Trim());
             }
             return true;
         }
+
     }
 }

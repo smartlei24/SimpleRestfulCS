@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{021A4D89-6A50-47C0-98B4-C0895C3A0D33}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>ASimpleHttPServer</RootNamespace>
-    <AssemblyName>ASimpleHttPServer</AssemblyName>
+    <RootNamespace>ASimpleHttpServer</RootNamespace>
+    <AssemblyName>ASimpleHttpServer</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>ASimpleHttpServer.Program</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
     <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
@@ -40,6 +43,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -50,6 +54,7 @@
   <ItemGroup>
     <Compile Include="DealRequest.cs" />
     <Compile Include="Employee.cs" />
+    <Compile Include="EmployeeRoute.cs" />
     <Compile Include="EmployeesResouce.cs" />
     <Compile Include="IResouce.cs" />
     <Compile Include="LoginResouce.cs" />
